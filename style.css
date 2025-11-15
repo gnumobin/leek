@@ -1,0 +1,32 @@
+body {
+  background-color: #333;
+  color: #eee;
+  font-family: sans-serif;
+}
+/* style.css */
+ul {
+  list-style: none;
+  background-color: #666;
+  padding: 1rem;
+  position: fixed;
+  z-index: 10;
+  width: 70%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  transform: translate(0, 0) scale(1, 1);
+  transform-origin: left center;
+  transition: transform 0.3s ease; /* برای slide-out smooth */
+}
+
+li {
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  background-color: #999;
+  padding: 1rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
