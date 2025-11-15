@@ -1,32 +1,52 @@
-body {
-  background-color: #333;
-  color: #eee;
-  font-family: sans-serif;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
-/* style.css */
+
+body {
+  font-family: sans-serif;
+  background: #333;
+  color: #eee;
+  overflow-x: hidden;
+  height: 100vh;
+}
+
 ul {
   list-style: none;
   background-color: #666;
   padding: 1rem;
   position: fixed;
-  z-index: 10;
-  width: 70%;
-  height: 100%;
   top: 0;
   left: 0;
-  transform: translate(0, 0) scale(1, 1);
+  width: 70%;
+  height: 100vh; /* منو به بالای صفحه چسبیده */
+  transform: translateX(-100%);
+  transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 10;
   transform-origin: left center;
-  transition: transform 0.3s ease; /* برای slide-out smooth */
 }
 
 li {
-  text-transform: uppercase;
   margin-bottom: 1rem;
   background-color: #999;
   padding: 1rem;
+  text-transform: uppercase;
 }
 
-* {
-  margin: 0;
-  padding: 0;
+/* handle شبیه One UI */
+.handle {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  width: 25px;
+  height: 80px;
+  background: #666;
+  border-radius: 0 12px 12px 0;
+  cursor: grab;
+  z-index: 15;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  touch-action: none;
+  user-select: none;
 }
