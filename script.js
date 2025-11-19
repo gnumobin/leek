@@ -1,55 +1,69 @@
 const ul = document.querySelector("ul");
 const handle = document.querySelector(".handle");
+const overlay = document.querySelector(".overlay");
 
 let dragging = false,
   startX = 0,
   curX = 0,
   origX = 0,
-  width = ul.offsetWidth,
-  raf = null;
+  width = ul.offsetWidth;
 
+// منو ابتدا بسته باشد
 origX = curX = -width;
-ul.style.transform = `translateX(${origX}px)`;
+ul.style.transform = `translateX(${curX}px)`;
 
-const pos = (e) => (e.touches ? e.touches[0].clientX : e.clientX);
-
+// HELPER
+const getX = (e) => e.touches[0].clientX;
 const apply = () => {
   ul.style.transform = `translateX(${curX}px)`;
-  raf = null;
+  overlay.style.opacity = Math.min(0.35, 0.35 * (1 + curX / width));
+
+  // handle همیشه visible: فقط کمی جلو عقب میره، نه کامل با منو
+  const handleOffset = curX / 3; // کمتر از منو
+  handle.style.transform = `translate(${handleOffset}px, -50%)`;
 };
 
-const start = (x) => {
+// START
+const onStart = (e) => {
+  const t = e.target;
+  if (t !== handle && t !== ul) return;
   dragging = true;
-  startX = x;
+  startX = getX(e);
   width = ul.offsetWidth;
   ul.style.transition = "none";
+  overlay.style.transition = "none";
+  handle.style.transition = "none";
 };
 
-const move = (x) => {
+// MOVE
+const onMove = (e) => {
   if (!dragging) return;
+  const x = getX(e);
   curX = Math.min(0, origX + (x - startX));
-  if (!raf) raf = requestAnimationFrame(apply);
+  apply();
 };
 
-const end = () => {
+// END
+const onEnd = () => {
   if (!dragging) return;
   dragging = false;
 
-  ul.style.transition = "transform .33s cubic-bezier(.25,1,.5,1)";
-  curX = curX > -width / 3 ? 0 : -width;
+  ul.style.transition = "transform 0.33s cubic-bezier(.25,1,.5,1)";
+  overlay.style.transition = "opacity 0.33s ease";
+  handle.style.transition = "transform 0.33s cubic-bezier(.25,1,.5,1)";
+
+  curX = curX > -width / 2 ? 0 : -width;
   ul.style.transform = `translateX(${curX}px)`;
+  overlay.style.opacity = curX === 0 ? 0.35 : 0;
+
+  // handle همیشه visible
+  handle.style.transform =
+    curX === 0 ? "translate(0,-50%)" : "translate(0,-50%)";
+
   origX = curX;
 };
 
-["mousedown", "touchstart"].forEach((ev) => {
-  handle.addEventListener(ev, (e) => start(pos(e)));
-  ul.addEventListener(ev, (e) => start(pos(e)));
-});
-
-["mousemove", "touchmove"].forEach((ev) => {
-  document.addEventListener(ev, (e) => move(pos(e)));
-});
-
-["mouseup", "touchend"].forEach((ev) => {
-  document.addEventListener(ev, end);
-});
+// فقط touch events (mobile)
+document.addEventListener("touchstart", onStart, { passive: true });
+document.addEventListener("touchmove", onMove, { passive: true });
+document.addEventListener("touchend", onEnd);
