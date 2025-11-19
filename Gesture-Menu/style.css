@@ -11,48 +11,58 @@ body {
   height: 100vh;
 }
 
-/* MENU */
+/* Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: #0007;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.33s ease;
+  z-index: 5;
+}
+
+/* Menu */
 ul {
   position: fixed;
-  list-style-type: none;
+  top: 0;
+  right: 0;
   width: min(70vw, 420px);
-  height: 100vh;
+  height: 100%;
   background: #666;
   padding: 1rem;
-  transform: translateX(-100%);
+  list-style: none;
+  transform: translateX(100%);
   transition: transform 0.33s cubic-bezier(0.25, 1, 0.5, 1);
   z-index: 10;
   will-change: transform;
   backface-visibility: hidden;
-  contain: strict;
-  top: 0;
-  border-top-right-radius: 1rem;
-  border-bottom-right-radius: 1rem;
+  border-radius: 1rem 0 0 1rem;
 }
 li {
   margin-bottom: 1rem;
   background: #999;
   padding: 1rem;
   border-radius: 8px;
+  text-transform: uppercase;
 }
 
-/* HANDLE */
+/* Handle */
 .handle {
   position: fixed;
   top: 50%;
-  left: 0;
+  right: 0;
   width: 26px;
   height: 90px;
   background: linear-gradient(180deg, #777, #555);
-  border-radius: 0 14px 14px 0;
+  border-radius: 14px 0 0 14px;
   cursor: grab;
   z-index: 20;
-  box-shadow: 0 0 8px #0006, inset 0 0 6px #0004;
+  display: grid;
+  place-items: center;
   transform: translateY(-50%);
   touch-action: none;
   user-select: none;
-  display: grid;
-  place-items: center;
 }
 .handle::before {
   content: "";
@@ -60,15 +70,4 @@ li {
   height: 50%;
   background: rgba(255, 255, 255, 0.25);
   border-radius: 4px;
-}
-
-/* OVERLAY */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.35);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.33s ease;
-  z-index: 5;
 }
