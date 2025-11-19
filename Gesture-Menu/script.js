@@ -26,7 +26,7 @@ const apply = () => {
 // START
 const onStart = (e) => {
   const t = e.target;
-  if (t !== handle && t !== ul) return;
+  if (t !== handle && t !== ul && t !== overlay) return;
   dragging = true;
   startX = getX(e);
   width = ul.offsetWidth;
@@ -50,6 +50,7 @@ const onEnd = () => {
 
   ul.style.transition = "transform 0.33s cubic-bezier(.25,1,.5,1)";
   overlay.style.transition = "opacity 0.33s ease";
+  overlay.style.pointerEvents = "auto";
   handle.style.transition = "transform 0.33s cubic-bezier(.25,1,.5,1)";
 
   curX = curX > -width / 2 ? 0 : -width;
