@@ -1,80 +1,55 @@
 const ul = document.querySelector("ul");
 const handle = document.querySelector(".handle");
 
-let isDragging = false;
-let startX = 0;
-let currentX = 0;
-let origX = -ul.offsetWidth; // منو کاملاً بسته
-const rightLimit = 0;
-const openThreshold = -ul.offsetWidth / 3;
+let dragging = false,
+  startX = 0,
+  curX = 0,
+  origX = 0,
+  width = ul.offsetWidth,
+  raf = null;
 
-// مقدار اولیه
+origX = curX = -width;
 ul.style.transform = `translateX(${origX}px)`;
 
-// گرفتن clientX از موس یا تاچ
-function getClientX(e) {
-  return e.touches ? e.touches[0].clientX : e.clientX;
-}
+const pos = (e) => (e.touches ? e.touches[0].clientX : e.clientX);
 
-// درخواست animation frame برای drag ultra-smooth
-let raf = null;
-function updateDrag() {
-  const skew =
-    currentX < 0 ? Math.max(-6, Math.min(6, (currentX - origX) / 20)) : 0;
-  const scaleY =
-    currentX < 0
-      ? Math.max(0.97, Math.min(1.03, 1 - (currentX - origX) / 900))
-      : 1;
-  ul.style.transform = `translateX(${currentX}px) skewX(${skew}deg) scaleY(${scaleY})`;
+const apply = () => {
+  ul.style.transform = `translateX(${curX}px)`;
   raf = null;
-}
+};
 
-// شروع drag
-function startDrag(clientX) {
-  isDragging = true;
-  startX = clientX;
+const start = (x) => {
+  dragging = true;
+  startX = x;
+  width = ul.offsetWidth;
   ul.style.transition = "none";
-}
+};
 
-// درگ
-function doDrag(clientX) {
-  if (!isDragging) return;
-  const dx = clientX - startX;
-  currentX = origX + dx;
+const move = (x) => {
+  if (!dragging) return;
+  curX = Math.min(0, origX + (x - startX));
+  if (!raf) raf = requestAnimationFrame(apply);
+};
 
-  if (currentX > rightLimit) currentX = rightLimit;
+const end = () => {
+  if (!dragging) return;
+  dragging = false;
 
-  if (!raf) raf = requestAnimationFrame(updateDrag);
-}
+  ul.style.transition = "transform .33s cubic-bezier(.25,1,.5,1)";
+  curX = curX > -width / 3 ? 0 : -width;
+  ul.style.transform = `translateX(${curX}px)`;
+  origX = curX;
+};
 
-// پایان drag
-function endDrag() {
-  if (!isDragging) return;
-  isDragging = false;
-  cancelAnimationFrame(raf);
-  raf = null;
-
-  ul.style.transition = "transform 0.35s cubic-bezier(0.25,1,0.5,1)";
-
-  // تصمیم‌گیری باز یا بسته شدن
-  if (currentX > openThreshold) {
-    currentX = 0; // باز
-  } else {
-    currentX = -ul.offsetWidth; // بسته
-  }
-
-  ul.style.transform = `translateX(${currentX}px) skewX(0deg) scaleY(1)`;
-  origX = currentX;
-}
-
-// event listeners برای drag روی handle و خود منو
-["mousedown", "touchstart"].forEach((evt) => {
-  handle.addEventListener(evt, (e) => startDrag(getClientX(e)));
-  ul.addEventListener(evt, (e) => startDrag(getClientX(e)));
+["mousedown", "touchstart"].forEach((ev) => {
+  handle.addEventListener(ev, (e) => start(pos(e)));
+  ul.addEventListener(ev, (e) => start(pos(e)));
 });
-["mousemove", "touchmove"].forEach((evt) => {
-  document.addEventListener(evt, (e) => doDrag(getClientX(e)));
+
+["mousemove", "touchmove"].forEach((ev) => {
+  document.addEventListener(ev, (e) => move(pos(e)));
 });
-["mouseup", "touchend"].forEach((evt) => {
-  document.addEventListener(evt, endDrag);
+
+["mouseup", "touchend"].forEach((ev) => {
+  document.addEventListener(ev, end);
 });
