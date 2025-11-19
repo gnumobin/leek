@@ -1,0 +1,39 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+body {
+  background-color: #333;
+  color: white;
+}
+.img-box {
+  margin: auto;
+  margin-top: 100px;
+  width: 200px;
+  border-radius: 50%;
+  position: relative;
+}
+.img {
+  width: 100%;
+  border-radius: 50%;
+}
+.big-img {
+  background-color: tomato;
+  padding: 1rem;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transition: 0.5s;
+  transform: translate(-50%, -50%);
+  transform-origin: right;
+  /* effects */
+  width: 0;
+  /* height: 0; */
+}
+.img-box:hover .big-img {
+  transform: translate(-50%, 48%);
+  width: 100%;
+  /* height: 100%; */
+}
