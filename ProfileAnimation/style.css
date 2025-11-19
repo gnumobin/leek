@@ -26,14 +26,16 @@ body {
   top: 50%;
   left: 50%;
   transition: 0.5s;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) skewY(45deg);
+  backface-visibility: hidden;
   transform-origin: right;
   /* effects */
   width: 0;
-  /* height: 0; */
+  height: 0;
 }
 .img-box:hover .big-img {
-  transform: translate(-50%, 48%);
+  transform: translate(-50%, 48%) skew(0);
   width: 100%;
-  /* height: 100%; */
+  height: 100%;
+  border-radius: 12px;
 }

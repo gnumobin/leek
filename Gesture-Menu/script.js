@@ -2,69 +2,133 @@ const ul = document.querySelector("ul");
 const handle = document.querySelector(".handle");
 const overlay = document.querySelector(".overlay");
 
+// safe vibration wrapper (iOS Safari does NOT support vibrate)
+const vibrate = (ms) => {
+  if (navigator.vibrate)
+    try {
+      navigator.vibrate(ms);
+    } catch (e) {}
+  // if not supported, do nothing — iOS won't vibrate from web
+};
+
 let dragging = false,
   startX = 0,
   curX = 0,
   origX = 0,
   width = ul.offsetWidth;
 
-// منو ابتدا بسته باشد
+// initialize closed
 origX = curX = -width;
-ul.style.transform = `translateX(${curX}px)`;
+ul.style.transform = `translate3d(${curX}px,0,0)`;
+overlay.style.opacity = 0;
+overlay.style.pointerEvents = "none";
 
-// HELPER
-const getX = (e) => e.touches[0].clientX;
+// helper to read touch X
+const getX = (e) =>
+  e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX || 0;
+
+// apply transforms + overlay + handle parallax
 const apply = () => {
-  ul.style.transform = `translateX(${curX}px)`;
-  overlay.style.opacity = Math.min(0.35, 0.35 * (1 + curX / width));
+  ul.style.transform = `translate3d(${curX}px,0,0)`;
+  const progress = 1 + curX / width; // 0..1
+  overlay.style.opacity = Math.max(0, Math.min(0.35, 0.35 * progress));
+  overlay.style.pointerEvents = progress > 0 ? "auto" : "none";
 
-  // handle همیشه visible: فقط کمی جلو عقب میره، نه کامل با منو
-  const handleOffset = curX / 3; // کمتر از منو
-  handle.style.transform = `translate(${handleOffset}px, -50%)`;
+  // handle always visible; small parallax
+  const handleOffset = curX / 3; // negative when closed
+  handle.style.transform = `translate3d(${handleOffset}px,-50%,0)`;
 };
 
-// START
-const onStart = (e) => {
-  const t = e.target;
-  if (t !== handle && t !== ul && t !== overlay) return;
+// START: only start drag when touching handle or the menu itself
+// IMPORTANT: for preventing swipe-back when starting on handle, use passive:false and preventDefault()
+const startOnHandle = (e) => {
+  // prevent iOS back-swipe when starting on the handle
+  e.preventDefault && e.preventDefault();
+
   dragging = true;
   startX = getX(e);
   width = ul.offsetWidth;
   ul.style.transition = "none";
   overlay.style.transition = "none";
   handle.style.transition = "none";
+
+  // optional haptic (works only on supporting devices, not iOS Safari)
+  vibrate(12);
 };
 
-// MOVE
+// attach touchstart to handle with passive:false so we can call preventDefault()
+handle.addEventListener("touchstart", startOnHandle, { passive: false });
+
+// Also allow starting drag from inside the menu (but don't preventDefault there to avoid blocking page gestures)
+ul.addEventListener(
+  "touchstart",
+  (e) => {
+    // if touch started on a focusable element, you may want to skip, but we allow start
+    dragging = true;
+    startX = getX(e);
+    width = ul.offsetWidth;
+    ul.style.transition = "none";
+    overlay.style.transition = "none";
+    handle.style.transition = "none";
+  },
+  { passive: true }
+);
+
+// MOVE: update curX while dragging
 const onMove = (e) => {
   if (!dragging) return;
   const x = getX(e);
   curX = Math.min(0, origX + (x - startX));
   apply();
 };
+document.addEventListener("touchmove", onMove, { passive: true });
 
-// END
+// END: snap open/close
 const onEnd = () => {
   if (!dragging) return;
   dragging = false;
 
-  ul.style.transition = "transform 0.33s cubic-bezier(.25,1,.5,1)";
-  overlay.style.transition = "opacity 0.33s ease";
-  overlay.style.pointerEvents = "auto";
-  handle.style.transition = "transform 0.33s cubic-bezier(.25,1,.5,1)";
+  ul.style.transition = "transform .33s cubic-bezier(.25,1,.5,1)";
+  overlay.style.transition = "opacity .33s ease";
+  handle.style.transition = "transform .33s cubic-bezier(.25,1,.5,1)";
 
-  curX = curX > -width / 2 ? 0 : -width;
-  ul.style.transform = `translateX(${curX}px)`;
+  // smaller threshold (you asked earlier)
+  const openThreshold = -width / 5; // changeable; here 1/5 width
+  const shouldOpen = curX > openThreshold;
+  curX = shouldOpen ? 0 : -width;
+
+  ul.style.transform = `translate3d(${curX}px,0,0)`;
   overlay.style.opacity = curX === 0 ? 0.35 : 0;
+  overlay.style.pointerEvents = curX === 0 ? "auto" : "none";
+  handle.style.transform = `translate3d(${curX === 0 ? 0 : 0}px,-50%,0)`; // keep visible
 
-  // handle همیشه visible
-  handle.style.transform =
-    curX === 0 ? "translate(0,-50%)" : "translate(0,-50%)";
+  // optional final haptic (works on Android)
+  vibrate(40);
 
   origX = curX;
 };
-
-// فقط touch events (mobile)
-document.addEventListener("touchstart", onStart, { passive: true });
-document.addEventListener("touchmove", onMove, { passive: true });
 document.addEventListener("touchend", onEnd);
+
+// Overlay click/tap closes menu (use both click and touchstart to be robust)
+const closeMenu = () => {
+  curX = -width;
+  origX = curX;
+  ul.style.transition = "transform .33s cubic-bezier(.25,1,.5,1)";
+  overlay.style.transition = "opacity .33s ease";
+  ul.style.transform = `translate3d(${curX}px,0,0)`;
+  overlay.style.opacity = 0;
+  overlay.style.pointerEvents = "none";
+  handle.style.transform = "translate3d(0,-50%,0)";
+  // final haptic
+  vibrate(40);
+};
+overlay.addEventListener("click", closeMenu);
+overlay.addEventListener(
+  "touchstart",
+  (e) => {
+    // prevent accidental drag start from overlay
+    e.preventDefault && e.preventDefault();
+    closeMenu();
+  },
+  { passive: false }
+);
