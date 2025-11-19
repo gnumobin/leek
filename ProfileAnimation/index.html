@@ -3,16 +3,83 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="script.js"></script>
+    <title>Liquid Morph</title>
+
+    <!-- Load D3 first -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-interpolate/3.0.1/d3-interpolate.min.js"></script>
+
+    <!-- Load Flubber second -->
+    <script src="https://unpkg.com/flubber/dist/flubber.min.js"></script>
+
+    <style>
+      body {
+        background: #111;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .box {
+        width: 200px;
+        height: 200px;
+        cursor: pointer;
+      }
+      .blob {
+        width: 100%;
+        height: 100%;
+        fill: tomato;
+      }
+    </style>
   </head>
   <body>
-    <div class="img-box">
-      <img src="me.webp" alt="portrait of a boy" class="img" />
-      <div class="big-img">
-        <img src="me.webp" alt="portrait of a boy" class="img" />
-      </div>
+    <div class="box">
+      <svg viewBox="0 0 200 200" class="blob">
+        <path
+          id="blob-path"
+          d="M100,20 C150,20 180,60 180,100 C180,150 150,180 100,180 C50,180 20,150 20,100 C20,60 50,20 100,20 Z"
+        />
+      </svg>
     </div>
+
+    <!-- Your Script LAST -->
+    <script>
+      const blob = document.getElementById("blob-path");
+
+      const shape1 =
+        "M100,20 C150,20 180,60 180,100 C180,150 150,180 100,180 C50,180 20,150 20,100 C20,60 50,20 100,20 Z";
+      const shape2 =
+        "M100,30 C170,40 190,120 140,160 C100,200 40,190 30,120 C20,60 50,20 100,30 Z";
+
+      function animate(toShape) {
+        const interpolator = flubber.interpolate(
+          blob.getAttribute("d"),
+          toShape,
+          { maxSegmentLength: 2 }
+        );
+
+        let start = null;
+        const duration = 600;
+
+        function frame(time) {
+          if (!start) start = time;
+
+          let t = (time - start) / duration;
+          if (t > 1) t = 1;
+
+          blob.setAttribute("d", interpolator(t));
+
+          if (t < 1) requestAnimationFrame(frame);
+        }
+
+        requestAnimationFrame(frame);
+      }
+
+      document
+        .querySelector(".box")
+        .addEventListener("mouseenter", () => animate(shape2));
+      document
+        .querySelector(".box")
+        .addEventListener("mouseleave", () => animate(shape1));
+    </script>
   </body>
 </html>
